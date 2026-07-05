@@ -6,6 +6,21 @@
 <title>Facade — Test demand before you build</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Google Analytics (GA4) — replace G-XXXXXXXXXX with your Measurement ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G8J7E3X2EF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-G8J7E3X2EF');
+</script>
+
+<!-- Vercel Web Analytics — works once deployed on Vercel with Analytics enabled in project settings -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
   :root{
     --bg:#FFFFFF;
@@ -226,7 +241,7 @@
     <div>
       <p class="eyebrow hero-anim">Idea validation, before you write a line of code</p>
       <h1 class="hero-anim">Build the <span>facade</span> before you build the business.</h1>
-      <p class="lead hero-anim">Describe your idea to Facade. We build a real landing page, find people on Reddit already talking about the problem you solve, and reach out on your behalf — so you see real demand before writing a line of code.</p>
+      <p class="lead hero-anim">Describe your idea to Facade. We build a real landing page, find people on Reddit already talking about the problem you solve, and reach out on your behalf — so you see real demand before writing a line of code, and learn exactly what your audience needs to turn your idea into the product they actually want.</p>
       <div class="btn-row hero-anim">
         <div class="btn-col">
           <button class="btn btn-primary" data-open="trial">Start free trial</button>
@@ -432,7 +447,12 @@
 <script>
   // Simple state store — in production this is where events would be sent to the founder's dashboard.
   const events = [];
-  function track(name, data){ events.push({name, data, t: Date.now()}); console.log('[facade:event]', name, data); }
+  function track(name, data){
+    events.push({name, data, t: Date.now()});
+    console.log('[facade:event]', name, data);
+    if (window.gtag) gtag('event', name, data);          // Google Analytics
+    if (window.va) va('event', { name, ...data });        // Vercel Web Analytics
+  }
 
   function openOverlay(id){
     document.getElementById('overlay-' + id).classList.add('visible');
