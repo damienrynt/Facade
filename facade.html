@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facade — Test demand before you build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --bg-soft:#F6F6FA;
+    --ink:#0E0E16;
+    --muted:#63647A;
+    --navy:#1B1E3D;
+    --purple:#3D2E7C;
+    --purple-deep:#2A1F5C;
+    --line:#E4E4EC;
+    --line-soft:#EEEEF3;
+    --success:#1F8A63;
+    --display:'Space Grotesk', sans-serif;
+    --sans:'Inter', sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--purple); outline-offset:3px;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 32px;}
+
+  /* NAV */
+  .nav{
+    position:sticky; top:0; z-index:20;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    max-width:1120px; margin:0 auto;
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600; font-size:19px; letter-spacing:-0.2px; color:var(--ink);}
+  .logo svg{display:block;}
+  .nav-links{display:flex; align-items:center; gap:30px;}
+  .nav-links a{
+    font-size:14.5px; color:var(--muted); text-decoration:none; font-weight:500;
+    transition:color .15s ease;
+  }
+  .nav-links a:hover{color:var(--ink);}
+
+  /* BUTTONS */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:14.5px;
+    padding:12px 22px; border-radius:6px; border:1px solid transparent;
+    cursor:pointer; text-decoration:none; white-space:nowrap;
+    transition:transform .12s ease, background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn{touch-action:manipulation;}
+  .btn-primary{background:var(--purple-deep); color:#FFFFFF;}
+  .btn-primary:hover{background:#392A6E;}
+  .btn-outline{background:transparent; color:var(--ink); border-color:#CFCFDA;}
+  .btn-outline:hover{border-color:var(--purple-deep); color:var(--purple-deep);}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:#CFCFDA; padding:9px 18px; font-size:14px;}
+  .btn-ghost:hover{border-color:var(--purple-deep); color:var(--purple-deep);}
+  .btn-block{width:100%;}
+
+  /* HERO */
+  .hero{
+    padding:88px 0 84px;
+    display:grid; grid-template-columns:1.1fr 0.75fr; gap:60px; align-items:center;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; color:var(--purple-deep);
+    text-transform:uppercase; letter-spacing:1.6px; margin:0 0 18px;
+  }
+  h1{
+    font-family:var(--display); font-weight:600; font-size:50px; line-height:1.1;
+    margin:0 0 22px; letter-spacing:-0.8px; color:var(--ink);
+  }
+  h1 span{color:var(--purple-deep);}
+  .hero p.lead{
+    font-size:17px; color:var(--muted); max-width:480px; margin:0 0 34px;
+  }
+  .btn-row{display:flex; flex-wrap:wrap; align-items:center; gap:16px;}
+  .btn-note{font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:2px;}
+  .btn-col{display:flex; flex-direction:column; gap:6px;}
+
+  /* facade elevation graphic — signature element */
+  .facade{
+    background:var(--bg-soft); border:1px solid var(--line); border-radius:12px;
+    padding:28px; display:flex; align-items:center; justify-content:center;
+  }
+  .facade svg rect.window{
+    stroke:#B9BAC9; stroke-width:1.4; fill:#FFFFFF;
+  }
+  .facade svg rect.window.lit{
+    fill:var(--purple-deep); stroke:var(--purple-deep);
+  }
+  .hero-anim, .reveal-item{opacity:1;}
+
+  /* HOW IT WORKS */
+  .steps{padding:66px 0; border-top:1px solid var(--line);}
+  .section-head{max-width:560px; margin-bottom:46px;}
+  .section-head h2{font-family:var(--display); font-size:31px; font-weight:600; margin:0 0 12px; letter-spacing:-0.5px;}
+  .section-head p{color:var(--muted); font-size:15.5px; margin:0;}
+  .step-row{display:grid; grid-template-columns:repeat(4,1fr); gap:0;}
+  .step{padding:0 22px 0 0; position:relative;}
+  .step:not(:last-child)::after{
+    content:''; position:absolute; top:11px; right:0; width:22px; height:1px; background:var(--line);
+  }
+  .step .num{
+    font-family:var(--mono); font-size:12px; color:var(--purple-deep); margin-bottom:14px; display:block;
+  }
+  .step h3{font-family:var(--sans); font-size:15.5px; font-weight:600; margin:0 0 8px;}
+  .step p{font-size:14px; color:var(--muted); margin:0; line-height:1.6;}
+
+  /* FEATURES */
+  .features{padding:66px 0; border-top:1px solid var(--line);}
+  .feature-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .feature{background:var(--bg); padding:30px 28px;}
+  .feature h3{font-size:15.5px; font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:9px;}
+  .feature h3::before{content:''; width:6px; height:6px; border-radius:1px; background:var(--purple-deep); flex-shrink:0;}
+  .feature p{font-size:13.8px; color:var(--muted); margin:0; line-height:1.6;}
+
+  /* PRICING */
+  .pricing{padding:66px 0 92px; border-top:1px solid var(--line);}
+  .price-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px; max-width:760px;}
+  .price-card{
+    background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:34px 30px;
+    display:flex; flex-direction:column;
+  }
+  .price-card.highlight{border-color:var(--purple-deep); box-shadow:0 0 0 1px var(--purple-deep) inset;}
+  .price-card .tag{font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:1.4px; color:var(--muted); margin-bottom:14px;}
+  .price-card.highlight .tag{color:var(--purple-deep);}
+  .price-card .amount{font-family:var(--display); font-size:38px; font-weight:600; margin-bottom:4px;}
+  .price-card .amount span{font-size:14.5px; color:var(--muted); font-family:var(--sans); font-weight:500;}
+  .price-card .desc{font-size:13.5px; color:var(--muted); margin:0 0 24px;}
+  .price-card ul{list-style:none; padding:0; margin:0 0 28px; flex-grow:1;}
+  .price-card li{font-size:13.8px; padding:7px 0; border-top:1px solid var(--line-soft); color:var(--ink);}
+  .price-card li:first-child{border-top:none;}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--line); padding:30px 0;}
+  .footer-inner{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  footer .logo{font-size:15px;}
+  footer .foot-links{display:flex; gap:22px; font-size:13px; color:var(--muted);}
+  footer .foot-links a{text-decoration:none;}
+  footer .foot-links a:hover{color:var(--ink);}
+
+  /* OVERLAYS */
+  .overlay{
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:none; overflow-y:auto;
+  }
+  .overlay.visible{display:block;}
+  .overlay-inner{max-width:560px; margin:0 auto; padding:90px 32px 60px;}
+  .overlay-close{
+    position:fixed; top:24px; right:32px; background:none; border:1px solid var(--line);
+    color:var(--muted); width:36px; height:36px; border-radius:6px; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center; z-index:101;
+  }
+  .overlay-close:hover{border-color:var(--purple-deep); color:var(--purple-deep);}
+  .status-mark{
+    width:44px; height:44px; border-radius:6px; background:var(--bg-soft); color:var(--purple-deep);
+    display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:24px;
+    border:1px solid var(--line); font-family:var(--display); font-weight:600;
+  }
+  .overlay h2{font-family:var(--display); font-size:29px; font-weight:600; margin:0 0 12px; letter-spacing:-0.5px;}
+  .overlay p.sub{color:var(--muted); font-size:15px; margin:0 0 32px; max-width:460px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block; font-size:13.5px; font-weight:600; margin-bottom:8px;}
+  .field textarea, .field input[type="email"], .field input[type="text"]{
+    width:100%; background:var(--bg); border:1px solid #CFCFDA; border-radius:6px;
+    color:var(--ink); font-family:var(--sans); font-size:14.5px; padding:12px 14px; resize:vertical;
+  }
+  .field textarea:focus, .field input:focus{border-color:var(--purple-deep);}
+  .radio-row{display:flex; flex-direction:column; gap:9px;}
+  .radio-opt{display:flex; align-items:center; gap:10px; font-size:14px; padding:10px 12px; border:1px solid #CFCFDA; border-radius:6px; cursor:pointer;}
+  .radio-opt:hover{border-color:var(--purple-deep);}
+  .radio-opt input{accent-color:var(--purple-deep);}
+  .thanks{display:none;}
+  .thanks.visible{display:block;}
+  .thanks .status-mark{color:var(--success); border-color:var(--success);}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr; padding-top:52px;}
+    .facade{display:none;}
+    h1{font-size:37px;}
+    .step-row{grid-template-columns:1fr 1fr; row-gap:32px;}
+    .step:nth-child(2)::after, .step:last-child::after{display:none;}
+    .feature-grid{grid-template-columns:1fr;}
+    .price-grid{grid-template-columns:1fr;}
+    .nav-links{gap:16px;}
+    .nav-links a{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="logo">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="1" stroke="#1B1E3D" stroke-width="1.4"/><rect x="5" y="5" width="3" height="3" fill="#3D2E7C"/><rect x="12" y="5" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/><rect x="5" y="12" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/><rect x="12" y="12" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/></svg>
+      Facade
+    </div>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <button class="btn btn-ghost" data-open="trial">Start free trial</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div>
+      <p class="eyebrow hero-anim">Idea validation, before you write a line of code</p>
+      <h1 class="hero-anim">Build the <span>facade</span> before you build the business.</h1>
+      <p class="lead hero-anim">Describe your idea to Facade. We build a real landing page, find people on Reddit already talking about the problem you solve, and reach out on your behalf — so you see real demand before writing a line of code.</p>
+      <div class="btn-row hero-anim">
+        <div class="btn-col">
+          <button class="btn btn-primary" data-open="trial">Start free trial</button>
+          <span class="btn-note">No card required</span>
+        </div>
+        <div class="btn-col">
+          <button class="btn btn-outline" data-open="cart">Add to cart — Validation Cycle</button>
+          <span class="btn-note">$9.99 one-time</span>
+        </div>
+      </div>
+    </div>
+    <div class="facade hero-anim" aria-hidden="true">
+      <svg width="220" height="220" viewBox="0 0 220 220">
+        <rect x="10" y="10" width="200" height="200" rx="4" fill="none" stroke="#D6D6E1" stroke-width="1.4"/>
+        <!-- window grid -->
+        <rect class="window" x="30" y="30" width="34" height="34"/>
+        <rect class="window" x="93" y="30" width="34" height="34"/>
+        <rect class="window lit" x="156" y="30" width="34" height="34"/>
+        <rect class="window" x="30" y="93" width="34" height="34"/>
+        <rect class="window" x="93" y="93" width="34" height="34"/>
+        <rect class="window" x="156" y="93" width="34" height="34"/>
+        <rect class="window" x="30" y="156" width="34" height="34"/>
+        <rect class="window" x="93" y="156" width="34" height="34"/>
+        <rect class="window" x="156" y="156" width="34" height="34"/>
+      </svg>
+    </div>
+  </section>
+
+  <section class="steps wrap">
+    <div class="section-head">
+      <h2>How it works</h2>
+      <p>From idea to real signal, in one afternoon.</p>
+    </div>
+    <div class="step-row reveal-group">
+      <div class="step reveal-item">
+        <span class="num">01</span>
+        <h3>Describe your idea</h3>
+        <p>Tell Facade what you're building and who it's for. That's the only input we need.</p>
+      </div>
+      <div class="step reveal-item">
+        <span class="num">02</span>
+        <h3>We build your page</h3>
+        <p>A clean, credible landing page goes live in seconds — no design or code required.</p>
+      </div>
+      <div class="step reveal-item">
+        <span class="num">03</span>
+        <h3>AI finds your buyers</h3>
+        <p>We scan Reddit threads for people already describing the exact problem you solve.</p>
+      </div>
+      <div class="step reveal-item">
+        <span class="num">04</span>
+        <h3>Outreach & signal</h3>
+        <p>Semi-automatic messages point them to your page. Every click and reply is tracked.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="features wrap">
+    <div class="section-head">
+      <h2>Features</h2>
+      <p>Most founders try to validate by posting on social media and hoping something goes viral — a slow, expensive gamble that reaches whoever happens to be scrolling, not whoever actually has the problem. Facade skips the gamble: intent search finds the exact people already describing your problem, with far greater accuracy and far fewer resources spent chasing an audience, so testing an idea stays as cheap and fast as it should be.</p>
+    </div>
+    <div class="feature-grid reveal-group">
+      <div class="feature reveal-item">
+        <h3>AI problem mapping</h3>
+        <p>Facade reads your idea and reverse-engineers it into the pain it removes, not the product it is. That reframing matters: almost nobody searches Reddit for a product that doesn't exist yet, but plenty of people are already describing the problem it would fix.</p>
+      </div>
+      <div class="feature reveal-item">
+        <h3>Reddit intent detection</h3>
+        <p>We scan relevant subreddits and rank threads and comments by purchase intent — phrases like "I wish there was a tool for this" or someone actively comparing workarounds. That narrows millions of posts down to the small slice that's a genuine warm lead.</p>
+      </div>
+      <div class="feature reveal-item">
+        <h3>Semi-automatic outreach</h3>
+        <p>Each high-intent match gets a short, personal reply referencing their specific post, not a templated pitch. You review and approve every message before it sends, so outreach stays within subreddit rules and reads like a person, not a bot.</p>
+      </div>
+      <div class="feature reveal-item">
+        <h3>Instant landing pages</h3>
+        <p>Your idea becomes a live, credible landing page in seconds, with real pricing and a real call to action, so the people you reach have somewhere to click, not just another survey link.</p>
+      </div>
+      <div class="feature reveal-item">
+        <h3>Conversion tracking</h3>
+        <p>Every view, click, and add-to-cart is logged and tied back to the exact subreddit, thread, and message that drove it, so you know precisely which pain point and phrasing actually turns strangers into buyers.</p>
+      </div>
+      <div class="feature reveal-item">
+        <h3>Post-click surveys</h3>
+        <p>When someone tries to buy something that isn't built yet, we don't just say sorry — we ask what they expected to get and what price felt fair. One answer like that often tells you more than a hundred cold signups.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing wrap">
+    <div class="section-head">
+      <h2>Pricing</h2>
+      <p>Start free, or run a full validation cycle for less than a coffee subscription.</p>
+    </div>
+    <div class="price-grid reveal-group">
+      <div class="price-card reveal-item">
+        <div class="tag">Free trial</div>
+        <div class="amount">$0</div>
+        <p class="desc">One landing page, one Reddit search, up to 25 messages sent.</p>
+        <ul>
+          <li>1 landing page</li>
+          <li>Up to 25 outreach messages</li>
+          <li>Basic click tracking</li>
+        </ul>
+        <button class="btn btn-outline btn-block" data-open="trial">Start free trial</button>
+      </div>
+      <div class="price-card highlight reveal-item">
+        <div class="tag">Validation cycle</div>
+        <div class="amount">$9.99 <span>one-time</span></div>
+        <p class="desc">One idea, fully tested against a real, targeted audience.</p>
+        <ul>
+          <li>1 landing page</li>
+          <li>Outreach to up to 250 targeted people</li>
+          <li>Full conversion analytics</li>
+          <li>Post-click survey capture</li>
+        </ul>
+        <button class="btn btn-primary btn-block" data-open="cart">Add to cart</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="logo" style="font-size:15px;">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="1" stroke="#1B1E3D" stroke-width="1.4"/><rect x="5" y="5" width="3" height="3" fill="#3D2E7C"/><rect x="12" y="5" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/><rect x="5" y="12" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/><rect x="12" y="12" width="3" height="3" stroke="#1B1E3D" stroke-width="1.2"/></svg>
+      Facade
+    </div>
+    <div class="foot-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- CART / CHECKOUT OVERLAY -->
+<div class="overlay" id="overlay-cart">
+  <button class="overlay-close" data-close="cart" aria-label="Close">✕</button>
+  <div class="overlay-inner">
+    <div class="form-state" id="cart-form-state">
+      <div class="status-mark">!</div>
+      <h2>Sorry, this isn't available yet</h2>
+      <p class="sub">You just tried to buy a Validation Cycle — which means you're exactly the kind of person we're building this for. Mind answering two quick questions while we finish building it?</p>
+      <form id="cart-form">
+        <div class="field">
+          <label for="cart-q1">What were you hoping this would solve for you?</label>
+          <textarea id="cart-q1" rows="3" placeholder="e.g. I want to know if anyone would pay for my idea before I spend months building it"></textarea>
+        </div>
+        <div class="field">
+          <label>What's stopping you from validating ideas today?</label>
+          <div class="radio-row">
+            <label class="radio-opt"><input type="radio" name="blocker" value="time"> Takes too much time</label>
+            <label class="radio-opt"><input type="radio" name="blocker" value="audience"> Hard to find the right people</label>
+            <label class="radio-opt"><input type="radio" name="blocker" value="skills"> Don't have design/dev skills</label>
+            <label class="radio-opt"><input type="radio" name="blocker" value="other"> Something else</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="cart-email">Want us to email you when it's ready? (optional)</label>
+          <input type="email" id="cart-email" placeholder="you@company.com">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Send</button>
+      </form>
+    </div>
+    <div class="thanks" id="cart-thanks">
+      <div class="status-mark">✓</div>
+      <h2>Thanks — that's genuinely useful</h2>
+      <p class="sub">We've noted what you're looking for. If you left an email, we'll reach out the moment Facade opens up.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FREE TRIAL OVERLAY -->
+<div class="overlay" id="overlay-trial">
+  <button class="overlay-close" data-close="trial" aria-label="Close">✕</button>
+  <div class="overlay-inner">
+    <div class="form-state" id="trial-form-state">
+      <div class="status-mark">!</div>
+      <h2>Free trial isn't open yet</h2>
+      <p class="sub">We're onboarding founders in small batches. Leave your email and we'll let you in as soon as a spot opens up.</p>
+      <form id="trial-form">
+        <div class="field">
+          <label for="trial-email">Email</label>
+          <input type="email" id="trial-email" required placeholder="you@company.com">
+        </div>
+        <div class="field">
+          <label for="trial-idea">One line about what you're building (optional)</label>
+          <input type="text" id="trial-idea" placeholder="e.g. A tool that helps freelancers invoice faster">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Join the waitlist</button>
+      </form>
+    </div>
+    <div class="thanks" id="trial-thanks">
+      <div class="status-mark">✓</div>
+      <h2>You're on the list</h2>
+      <p class="sub">We'll email you the moment a free trial spot opens up.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Simple state store — in production this is where events would be sent to the founder's dashboard.
+  const events = [];
+  function track(name, data){ events.push({name, data, t: Date.now()}); console.log('[facade:event]', name, data); }
+
+  function openOverlay(id){
+    document.getElementById('overlay-' + id).classList.add('visible');
+    document.body.style.overflow = 'hidden';
+    track(id === 'cart' ? 'add_to_cart_click' : 'free_trial_click', {});
+    if (window.__facadeAnimateOverlay) window.__facadeAnimateOverlay(id);
+  }
+  function closeOverlay(id){
+    document.getElementById('overlay-' + id).classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('[data-open]').forEach(el=>{
+    el.addEventListener('click', ()=> openOverlay(el.getAttribute('data-open')));
+  });
+  document.querySelectorAll('[data-close]').forEach(el=>{
+    el.addEventListener('click', ()=> closeOverlay(el.getAttribute('data-close')));
+  });
+
+  document.getElementById('cart-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const data = {
+      problem: document.getElementById('cart-q1').value,
+      blocker: (document.querySelector('input[name="blocker"]:checked') || {}).value || null,
+      email: document.getElementById('cart-email').value
+    };
+    track('validation_survey_submitted', data);
+    document.getElementById('cart-form-state').style.display = 'none';
+    document.getElementById('cart-thanks').classList.add('visible');
+    if (window.__facadeAnimateThanks) window.__facadeAnimateThanks('cart');
+  });
+
+  document.getElementById('trial-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const data = {
+      email: document.getElementById('trial-email').value,
+      idea: document.getElementById('trial-idea').value
+    };
+    track('waitlist_signup', data);
+    document.getElementById('trial-form-state').style.display = 'none';
+    document.getElementById('trial-thanks').classList.add('visible');
+    if (window.__facadeAnimateThanks) window.__facadeAnimateThanks('trial');
+  });
+</script>
+
+<script type="module">
+  // Motion (motion.dev, formerly Framer Motion) — progressive enhancement.
+  // If the CDN is unreachable everything above still works and the page stays fully visible.
+  try {
+    const { animate, hover, press, inView, stagger } = await import("https://cdn.jsdelivr.net/npm/motion@11.13.5/+esm");
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) throw new Error('reduced motion preferred — skipping enhancement');
+
+    // --- Hero entrance ---
+    const heroEls = document.querySelectorAll('.hero-anim');
+    animate(heroEls, { opacity: [0, 1], y: [16, 0] }, { duration: 0.6, delay: stagger(0.09), easing: 'ease-out' });
+
+    // --- Facade window grid: staggered entrance, then the lit window breathes ---
+    const windows = document.querySelectorAll('.facade svg rect.window');
+    animate(windows, { opacity: [0, 1], scale: [0.7, 1] }, { duration: 0.45, delay: stagger(0.05, { startDelay: 0.3 }), easing: 'ease-out' });
+    const litWindow = document.querySelector('.facade svg rect.window.lit');
+    if (litWindow) {
+      animate(litWindow, { opacity: [1, 0.35, 1] }, { duration: 2.8, repeat: Infinity, easing: 'ease-in-out', delay: 1 });
+    }
+
+    // --- Scroll-triggered reveals for step/feature/price groups ---
+    document.querySelectorAll('.reveal-group').forEach((group) => {
+      const items = group.querySelectorAll('.reveal-item');
+      animate(items, { opacity: 0, y: 18 }, { duration: 0 }); // set hidden baseline only once Motion is confirmed active
+      inView(group, () => {
+        animate(items, { opacity: [0, 1], y: [18, 0] }, { duration: 0.5, delay: stagger(0.08), easing: 'ease-out' });
+      }, { amount: 0.25 });
+    });
+
+    // --- Section headings: gentle fade/slide on scroll into view ---
+    inView('.section-head', (el) => {
+      animate(el, { opacity: [0, 1], y: [12, 0] }, { duration: 0.5, easing: 'ease-out' });
+    }, { amount: 0.6 });
+
+    // --- Button micro-interactions ---
+    hover('.btn', (el) => {
+      const anim = animate(el, { scale: 1.03 }, { type: 'spring', stiffness: 400, damping: 22 });
+      return () => animate(el, { scale: 1 }, { type: 'spring', stiffness: 400, damping: 22 });
+    });
+    press('.btn', (el) => {
+      animate(el, { scale: 0.96 }, { type: 'spring', stiffness: 500, damping: 25 });
+      return () => animate(el, { scale: 1 }, { type: 'spring', stiffness: 400, damping: 22 });
+    });
+
+    // --- Feature & price cards lift slightly on hover ---
+    hover('.feature, .price-card', (el) => {
+      animate(el, { y: -3 }, { type: 'spring', stiffness: 350, damping: 24 });
+      return () => animate(el, { y: 0 }, { type: 'spring', stiffness: 350, damping: 24 });
+    });
+
+    // --- Overlay open animation ---
+    window.__facadeAnimateOverlay = (id) => {
+      const inner = document.querySelector('#overlay-' + id + ' .overlay-inner');
+      if (inner) animate(inner, { opacity: [0, 1], y: [14, 0] }, { duration: 0.4, easing: 'ease-out' });
+    };
+
+    // --- Thank-you state animation after form submit ---
+    window.__facadeAnimateThanks = (id) => {
+      const thanks = document.querySelector('#' + id + '-thanks');
+      if (thanks) animate(thanks, { opacity: [0, 1], y: [10, 0] }, { duration: 0.4, easing: 'ease-out' });
+    };
+  } catch (err) {
+    console.warn('[facade] motion enhancement skipped:', err.message);
+  }
+</script>
+
+</body>
+</html>
