@@ -8,12 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- Google Analytics (GA4) — replace G-XXXXXXXXXX with your Measurement ID -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-G8J7E3X2EF"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-G8J7E3X2EF');
+  gtag('config', 'G-XXXXXXXXXX');
 </script>
 
 <!-- Vercel Web Analytics — works once deployed on Vercel with Analytics enabled in project settings -->
@@ -191,7 +191,8 @@
     border:1px solid var(--line); font-family:var(--display); font-weight:600;
   }
   .overlay h2{font-family:var(--display); font-size:29px; font-weight:600; margin:0 0 12px; letter-spacing:-0.5px;}
-  .overlay p.sub{color:var(--muted); font-size:15px; margin:0 0 32px; max-width:460px;}
+  .overlay p.sub{color:var(--muted); font-size:15px; margin:0 0 28px; max-width:460px;}
+  .overlay-inner iframe{border-radius:10px;}
   .field{margin-bottom:20px;}
   .field label{display:block; font-size:13.5px; font-weight:600; margin-bottom:8px;}
   .field textarea, .field input[type="email"], .field input[type="text"]{
@@ -383,36 +384,10 @@
 <div class="overlay" id="overlay-cart">
   <button class="overlay-close" data-close="cart" aria-label="Close">✕</button>
   <div class="overlay-inner">
-    <div class="form-state" id="cart-form-state">
-      <div class="status-mark">!</div>
-      <h2>Sorry, this isn't available yet</h2>
-      <p class="sub">You just tried to buy a Validation Cycle — which means you're exactly the kind of person we're building this for. Mind answering two quick questions while we finish building it?</p>
-      <form id="cart-form">
-        <div class="field">
-          <label for="cart-q1">What were you hoping this would solve for you?</label>
-          <textarea id="cart-q1" rows="3" placeholder="e.g. I want to know if anyone would pay for my idea before I spend months building it"></textarea>
-        </div>
-        <div class="field">
-          <label>What's stopping you from validating ideas today?</label>
-          <div class="radio-row">
-            <label class="radio-opt"><input type="radio" name="blocker" value="time"> Takes too much time</label>
-            <label class="radio-opt"><input type="radio" name="blocker" value="audience"> Hard to find the right people</label>
-            <label class="radio-opt"><input type="radio" name="blocker" value="skills"> Don't have design/dev skills</label>
-            <label class="radio-opt"><input type="radio" name="blocker" value="other"> Something else</label>
-          </div>
-        </div>
-        <div class="field">
-          <label for="cart-email">Want us to email you when it's ready? (optional)</label>
-          <input type="email" id="cart-email" placeholder="you@company.com">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Send</button>
-      </form>
-    </div>
-    <div class="thanks" id="cart-thanks">
-      <div class="status-mark">✓</div>
-      <h2>Thanks — that's genuinely useful</h2>
-      <p class="sub">We've noted what you're looking for. If you left an email, we'll reach out the moment Facade opens up.</p>
-    </div>
+    <div class="status-mark">!</div>
+    <h2>Sorry, this isn't available yet</h2>
+    <p class="sub">You just tried to buy a Validation Cycle — which means you're exactly the kind of person we're building this for. Mind answering a couple of quick questions while we finish building it?</p>
+    <iframe src="https://tally.so/embed/Meyl40?transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="Facade validation survey"></iframe>
   </div>
 </div>
 
@@ -420,27 +395,10 @@
 <div class="overlay" id="overlay-trial">
   <button class="overlay-close" data-close="trial" aria-label="Close">✕</button>
   <div class="overlay-inner">
-    <div class="form-state" id="trial-form-state">
-      <div class="status-mark">!</div>
-      <h2>Free trial isn't open yet</h2>
-      <p class="sub">We're onboarding founders in small batches. Leave your email and we'll let you in as soon as a spot opens up.</p>
-      <form id="trial-form">
-        <div class="field">
-          <label for="trial-email">Email</label>
-          <input type="email" id="trial-email" required placeholder="you@company.com">
-        </div>
-        <div class="field">
-          <label for="trial-idea">One line about what you're building (optional)</label>
-          <input type="text" id="trial-idea" placeholder="e.g. A tool that helps freelancers invoice faster">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Join the waitlist</button>
-      </form>
-    </div>
-    <div class="thanks" id="trial-thanks">
-      <div class="status-mark">✓</div>
-      <h2>You're on the list</h2>
-      <p class="sub">We'll email you the moment a free trial spot opens up.</p>
-    </div>
+    <div class="status-mark">!</div>
+    <h2>Free trial isn't open yet</h2>
+    <p class="sub">We're onboarding founders in small batches. Leave your email and a line about what you're building, and we'll let you in as soon as a spot opens up.</p>
+    <iframe src="https://tally.so/embed/Meyl40?transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="Facade waitlist form"></iframe>
   </div>
 </div>
 
@@ -470,31 +428,6 @@
   });
   document.querySelectorAll('[data-close]').forEach(el=>{
     el.addEventListener('click', ()=> closeOverlay(el.getAttribute('data-close')));
-  });
-
-  document.getElementById('cart-form').addEventListener('submit', function(e){
-    e.preventDefault();
-    const data = {
-      problem: document.getElementById('cart-q1').value,
-      blocker: (document.querySelector('input[name="blocker"]:checked') || {}).value || null,
-      email: document.getElementById('cart-email').value
-    };
-    track('validation_survey_submitted', data);
-    document.getElementById('cart-form-state').style.display = 'none';
-    document.getElementById('cart-thanks').classList.add('visible');
-    if (window.__facadeAnimateThanks) window.__facadeAnimateThanks('cart');
-  });
-
-  document.getElementById('trial-form').addEventListener('submit', function(e){
-    e.preventDefault();
-    const data = {
-      email: document.getElementById('trial-email').value,
-      idea: document.getElementById('trial-idea').value
-    };
-    track('waitlist_signup', data);
-    document.getElementById('trial-form-state').style.display = 'none';
-    document.getElementById('trial-thanks').classList.add('visible');
-    if (window.__facadeAnimateThanks) window.__facadeAnimateThanks('trial');
   });
 </script>
 
