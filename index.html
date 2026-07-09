@@ -209,15 +209,41 @@
   .thanks .status-mark{color:var(--success); border-color:var(--success);}
 
   @media (max-width:860px){
-    .hero{grid-template-columns:1fr; padding-top:52px;}
+    .wrap{padding:0 24px;}
+    .nav-inner{padding:16px 24px;}
+    .hero{grid-template-columns:1fr; padding:48px 0 56px; gap:36px;}
     .facade{display:none;}
-    h1{font-size:37px;}
+    h1{font-size:34px;}
+    .hero p.lead{font-size:16px;}
+    .btn-row{gap:14px;}
+    .steps, .features, .pricing{padding:48px 0;}
     .step-row{grid-template-columns:1fr 1fr; row-gap:32px;}
     .step:nth-child(2)::after, .step:last-child::after{display:none;}
     .feature-grid{grid-template-columns:1fr;}
     .price-grid{grid-template-columns:1fr;}
-    .nav-links{gap:16px;}
+    .nav-links{gap:14px;}
     .nav-links a{display:none;}
+    .overlay-inner{padding:76px 24px 48px;}
+  }
+
+  @media (max-width:520px){
+    h1{font-size:29px; letter-spacing:-0.4px;}
+    .eyebrow{font-size:11.5px;}
+    .hero p.lead{font-size:15px;}
+    .btn-row{flex-direction:column; align-items:stretch; gap:16px;}
+    .btn-col{width:100%;}
+    .btn-col .btn{width:100%;}
+    .section-head h2{font-size:26px;}
+    .step-row{grid-template-columns:1fr; row-gap:26px;}
+    .step::after{display:none !important;}
+    .price-card{padding:26px 22px;}
+    .feature{padding:24px 22px;}
+    .footer-inner{flex-direction:column; align-items:flex-start; gap:16px;}
+    .overlay-inner{padding:70px 18px 40px;}
+    .overlay h2{font-size:24px;}
+    .nav-inner{flex-wrap:wrap; row-gap:10px;}
+    .nav-links{gap:8px;}
+    .nav-links .btn-ghost{padding:8px 13px; font-size:12.5px;}
   }
 </style>
 </head>
@@ -232,6 +258,7 @@
     <nav class="nav-links">
       <a href="#features">Features</a>
       <a href="#pricing">Pricing</a>
+      <button class="btn btn-ghost" data-open="feedback">Feedback</button>
       <button class="btn btn-ghost" data-open="trial">Start free trial</button>
     </nav>
   </div>
@@ -402,6 +429,17 @@
   </div>
 </div>
 
+<!-- FEEDBACK OVERLAY -->
+<div class="overlay" id="overlay-feedback">
+  <button class="overlay-close" data-close="feedback" aria-label="Close">✕</button>
+  <div class="overlay-inner">
+    <div class="status-mark">?</div>
+    <h2>Tell us what you think</h2>
+    <p class="sub">Good, bad, or brutally honest — we'd genuinely like to know. Takes about a minute.</p>
+    <iframe data-tally-src="https://tally.so/embed/Meyl40?transparentBackground=1&hideTitle=1&dynamicHeight=1" loading="lazy" width="100%" height="1" frameborder="0" marginheight="0" marginwidth="0" title="Facade feedback form"></iframe>
+  </div>
+</div>
+
 <script>
   // Simple state store — in production this is where events would be sent to the founder's dashboard.
   const events = [];
@@ -415,7 +453,8 @@
   function openOverlay(id){
     document.getElementById('overlay-' + id).classList.add('visible');
     document.body.style.overflow = 'hidden';
-    track(id === 'cart' ? 'add_to_cart_click' : 'free_trial_click', {});
+    const eventNames = { cart: 'add_to_cart_click', trial: 'free_trial_click', feedback: 'feedback_click' };
+    track(eventNames[id] || (id + '_click'), {});
     if (window.__facadeAnimateOverlay) window.__facadeAnimateOverlay(id);
   }
   function closeOverlay(id){
